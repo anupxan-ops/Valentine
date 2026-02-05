@@ -22,7 +22,7 @@
     overflow: hidden;
   }
 
-  /* CENTER CONTENT */
+  /* CENTER CARD */
   .card {
     position: absolute;
     left: 50%;
@@ -39,16 +39,27 @@
 
   h1 {
     font-size: 34px;
-    margin: 0 0 30px;
+    margin: 0 0 26px;
     color: #d81b60;
   }
 
-  #yes {
+  /* Buttons aligned at start */
+  .btnRow {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    align-items: center;
+  }
+
+  #yes, #no {
     padding: 14px 36px;
     font-size: 18px;
     border-radius: 12px;
     border: none;
     cursor: pointer;
+  }
+
+  #yes {
     background: #e91e63;
     color: #fff;
     transition: transform 0.25s ease;
@@ -58,39 +69,46 @@
     transform: scale(1.08);
   }
 
-  /* NO button floats freely in the screen */
+  /* NO starts normal */
   #no {
-    position: absolute;
-    padding: 14px 36px;
-    font-size: 18px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
     background: #e0e0e0;
     color: #555;
-    z-index: 5; /* MUST be above everything */
+    position: relative;
+    z-index: 5;
     user-select: none;
     touch-action: none;
+  }
+
+  /* NO floating state */
+  .floatingNo {
+    position: absolute !important;
+    z-index: 99999 !important;
   }
 </style>
 </head>
 
 <body>
-  <div id="box">
-    <div class="card">
-      <h1>Would you be my Valentine? ❤️</h1>
-      <button id="yes">YES</button>
-    </div>
+<div id="box">
 
-    <button id="no">NO</button>
+  <div class="card">
+    <h1>Would you be my Valentine? ❤️</h1>
+
+    <div class="btnRow" id="btnRow">
+      <button id="yes">YES</button>
+      <button id="no">NO</button>
+    </div>
   </div>
+
+</div>
 
 <script>
   const box = document.getElementById("box");
+  const row = document.getElementById("btnRow");
   const noBtn = document.getElementById("no");
   const yesBtn = document.getElementById("yes");
 
   let dodgeCount = 0;
+  let floating = false;
 
   function clamp(val, min, max) {
     return Math.max(min, Math.min(max, val));
@@ -99,13 +117,13 @@
   function moveNoTo(x, y) {
     const boxRect = box.getBoundingClientRect();
     const btnRect = noBtn.getBoundingClientRect();
-
     const padding = 12;
 
     const minX = padding;
     const minY = padding;
-    const maxX = boxRect.width - btnRect.width - padding;
-    const maxY = boxRect.height - btnRect.height - padding;
+
+    const maxX = Math.max(minX, boxRect.width - btnRect.width - padding);
+    const maxY = Math.max(minY, boxRect.height - btnRect.height - padding);
 
     const safeX = clamp(x, minX, maxX);
     const safeY = clamp(y, minY, maxY);
@@ -114,12 +132,23 @@
     noBtn.style.top = safeY + "px";
   }
 
-  function placeNoNearCenter() {
+  function makeFloating() {
+    if (floating) return;
+    floating = true;
+
+    // Get NO's exact screen position while it is still aligned in the row
+    const btnRect = noBtn.getBoundingClientRect();
     const boxRect = box.getBoundingClientRect();
 
-    // Start it near the YES button area so the user sees it
-    const startX = boxRect.width / 2 + 90;
-    const startY = boxRect.height * 0.42 + 60;
+    // Move the NO button OUT of the row and INTO the full screen box
+    box.appendChild(noBtn);
+
+    // Apply floating style
+    noBtn.classList.add("floatingNo");
+
+    // Convert viewport coords to box coords
+    const startX = btnRect.left - boxRect.left;
+    const startY = btnRect.top - boxRect.top;
 
     moveNoTo(startX, startY);
   }
@@ -127,23 +156,25 @@
   function dodge() {
     dodgeCount++;
 
+    // First interaction: detach from the row, float freely
+    makeFloating();
+
     const boxRect = box.getBoundingClientRect();
     const btnRect = noBtn.getBoundingClientRect();
-
     const padding = 12;
 
     const minX = padding;
     const minY = padding;
-    const maxX = boxRect.width - btnRect.width - padding;
-    const maxY = boxRect.height - btnRect.height - padding;
+
+    const maxX = Math.max(minX, boxRect.width - btnRect.width - padding);
+    const maxY = Math.max(minY, boxRect.height - btnRect.height - padding);
 
     const x = minX + Math.random() * (maxX - minX);
     const y = minY + Math.random() * (maxY - minY);
 
-    noBtn.style.left = x + "px";
-    noBtn.style.top = y + "px";
+    moveNoTo(x, y);
 
-    // YES grows subtly, like confidence
+    // YES grows subtly
     const scale = 1 + dodgeCount * 0.04;
     yesBtn.style.transform = `scale(${scale})`;
   }
@@ -166,14 +197,12 @@
     window.location.href = "yes.html";
   });
 
-  // Init
-  window.addEventListener("load", () => {
-    placeNoNearCenter();
-  });
-
-  // Keep it inside on resize/rotation
+  // Keep NO safe on resize/rotation
   window.addEventListener("resize", () => {
-    placeNoNearCenter();
+    if (!floating) return;
+    const rect = noBtn.getBoundingClientRect();
+    const boxRect = box.getBoundingClientRect();
+    moveNoTo(rect.left - boxRect.left, rect.top - boxRect.top);
   });
 </script>
 
