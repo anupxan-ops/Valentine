@@ -76,6 +76,15 @@
       user-select: none;
       touch-action: none;
     }
+
+    /* Once it becomes floating, we apply this class */
+    .floatingNo {
+      position: fixed !important;
+      z-index: 999999 !important;
+      margin: 0 !important;
+      left: 0;
+      top: 0;
+    }
   </style>
 </head>
 
@@ -95,61 +104,81 @@
     const yesBtn = document.getElementById("yes");
 
     let dodgeCount = 0;
-    let freeFloating = false;
+    let isFloating = false;
 
-    function dodge() {
-      dodgeCount++;
-
-      // First dodge: lock the button to the viewport at the exact same spot
-      if (!freeFloating) {
-        freeFloating = true;
-
-        const rect = noBtn.getBoundingClientRect();
-
-        // IMPORTANT: when switching to fixed, we must also remove any flex influence
-        noBtn.style.position = "fixed";
-        noBtn.style.left = rect.left + "px";
-        noBtn.style.top = rect.top + "px";
-        noBtn.style.margin = "0";
-        noBtn.style.zIndex = "99999";
-      }
-
-      // Now jump somewhere else on screen (but never off-screen)
+    function moveNoTo(x, y) {
       const padding = 16;
 
       const maxX = window.innerWidth - noBtn.offsetWidth - padding;
       const maxY = window.innerHeight - noBtn.offsetHeight - padding;
 
-      const x = padding + Math.random() * Math.max(0, maxX);
-      const y = padding + Math.random() * Math.max(0, maxY);
+      const safeX = Math.max(padding, Math.min(x, maxX));
+      const safeY = Math.max(padding, Math.min(y, maxY));
 
-      noBtn.style.left = x + "px";
-      noBtn.style.top = y + "px";
+      noBtn.style.left = safeX + "px";
+      noBtn.style.top = safeY + "px";
+    }
 
-      // YES grows slightly every time (subtle)
+    function makeFloating() {
+      if (isFloating) return;
+      isFloating = true;
+
+      // Get its exact on-screen position while still inside the row
+      const rect = noBtn.getBoundingClientRect();
+
+      // Move the button OUT of the card into the body (prevents vanishing/clipping)
+      document.body.appendChild(noBtn);
+
+      // Turn it into a fixed floating element
+      noBtn.classList.add("floatingNo");
+
+      // Keep it exactly where it was
+      moveNoTo(rect.left, rect.top);
+    }
+
+    function dodge() {
+      dodgeCount++;
+
+      // First dodge: detach and float
+      makeFloating();
+
+      // Now jump somewhere else on screen
+      const padding = 16;
+      const x = padding + Math.random() * (window.innerWidth - noBtn.offsetWidth - padding * 2);
+      const y = padding + Math.random() * (window.innerHeight - noBtn.offsetHeight - padding * 2);
+
+      moveNoTo(x, y);
+
+      // YES grows slightly every time
       const scale = 1 + dodgeCount * 0.04;
       yesBtn.style.transform = `scale(${scale})`;
     }
 
-    // Desktop: run away when hovered OR clicked
+    // Desktop
     noBtn.addEventListener("mouseenter", dodge);
-    noBtn.addEventListener("click", (e) => {
+    noBtn.addEventListener("mousedown", (e) => {
       e.preventDefault();
       dodge();
     });
 
-    // Mobile: run away when tapped
+    // Mobile
     noBtn.addEventListener("touchstart", (e) => {
       e.preventDefault();
       dodge();
     }, { passive: false });
 
-    // YES takes you to the celebration page
+    // YES click
     yesBtn.addEventListener("click", () => {
       window.location.href = "yes.html";
+    });
+
+    // If user rotates phone / resizes window, keep NO on-screen
+    window.addEventListener("resize", () => {
+      if (!isFloating) return;
+      const rect = noBtn.getBoundingClientRect();
+      moveNoTo(rect.left, rect.top);
     });
   </script>
 
 </body>
 </html>
-
