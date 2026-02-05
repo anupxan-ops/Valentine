@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>💖</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<style>
+  body {
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: 48px;
+    color: #fff;
+    text-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    z-index: 2;
+  text-align: center;
+  line-height: 1.25;
+  }
+
+  .heart {
+    position: absolute;
+    font-size: 22px;
+    animation: float 6s linear infinite;
+    opacity: 0.8;
+  }
+
+  @keyframes float {
+    from {
+      transform: translateY(100vh) scale(1);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-10vh) scale(1.4);
+      opacity: 0;
+    }
+  }
+
+.content {
+  text-align: center;
+  z-index: 2;
+  position: relative;
+}
+
+.pic {
+  width: 260px;
+  max-width: 75vw;
+  border-radius: 18px;
+  margin: 0 auto 18px auto;
+  display: block;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+}
+</style>
+</head>
+
+<body>
+
+ <div class="content">
+    <img src="celebration.gif" alt="Yay!" class="pic">
+
+  <h1>
+  😍YES!😍<br>
+  😘BEST DECISION EVER!!😘 ;)<br>
+  💖LOVE YOU!!💖 <br>
+🍑
+
+
+</h1>	
+
+  </div>
+
+<script>
+  const hearts = ["💖","❤️","💘","💕","💗"];
+
+  function createHeart() {
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.innerText = hearts[Math.floor(Math.random() * hearts.length)];
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.animationDuration = (Math.random() * 3 + 4) + "s";
+    heart.style.fontSize = (Math.random() * 20 + 16) + "px";
+    document.body.appendChild(heart);
+
+    setTimeout(() => heart.remove(), 7000);
+  }
+
+  setInterval(createHeart, 250);
+</script>
+</body>
+</html>
