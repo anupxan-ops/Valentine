@@ -1,181 +1,177 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>One Question</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>One Question ❤️</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-  body {
-    margin: 0;
-    height: 100vh;
-    font-family: "Segoe UI", system-ui, sans-serif;
-    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-    overflow: hidden;
-  }
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      overflow: hidden;
+    }
 
-  /* FULL SCREEN BOX */
-  #box {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-  }
+    .card {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%);
+      width: min(720px, 88vw);
+      background: rgba(255, 255, 255, 0.92);
+      padding: 52px 56px;
+      border-radius: 26px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+      backdrop-filter: blur(6px);
+    }
 
-  /* CENTER CONTENT */
-  .card {
-    position: absolute;
-    left: 50%;
-    top: 42%;
-    transform: translate(-50%, -50%);
-    background: rgba(255,255,255,0.92);
-    padding: 48px 64px;
-    border-radius: 24px;
-    text-align: center;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
-    backdrop-filter: blur(6px);
-    z-index: 2;
-  }
+    h1 {
+      font-size: 38px;
+      margin: 0 0 28px;
+      color: #d81b60;
+      font-weight: 800;
+    }
 
-  h1 {
-    font-size: 34px;
-    margin: 0 0 30px;
-    color: #d81b60;
-  }
+    .btnRow {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 8px;
+      position: relative;
+    }
 
-  #yes {
-    padding: 14px 36px;
-    font-size: 18px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    background: #e91e63;
-    color: #fff;
-    transition: transform 0.25s ease;
-  }
+    #yes, #no {
+      padding: 14px 40px;
+      font-size: 18px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
 
-  #yes:hover {
-    transform: scale(1.08);
-  }
+    #yes {
+      background: #e91e63;
+      color: white;
+      transition: transform 0.25s ease;
+      box-shadow: 0 12px 30px rgba(233, 30, 99, 0.35);
+    }
 
-  /* NO button floats freely in the screen */
-  #no {
-    position: absolute;
-    padding: 14px 36px;
-    font-size: 18px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    background: #e0e0e0;
-    color: #555;
-    z-index: 5; /* MUST be above everything */
-    user-select: none;
-    touch-action: none;
-  }
-</style>
+    #yes:hover {
+      transform: scale(1.08);
+    }
+
+    /* NO starts aligned normally */
+    #no {
+      background: #e0e0e0;
+      color: #555;
+      position: relative;
+      z-index: 5;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      user-select: none;
+      touch-action: none;
+    }
+
+    /* Small floating hearts in background (optional charm) */
+    .bgHeart {
+      position: fixed;
+      font-size: 18px;
+      opacity: 0.12;
+      animation: drift 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes drift {
+      from { transform: translateY(110vh) scale(1); }
+      to   { transform: translateY(-15vh) scale(1.6); }
+    }
+  </style>
 </head>
 
 <body>
-  <div id="box">
-    <div class="card">
-      <h1>Would you be my Valentine? ❤️</h1>
-      <button id="yes">YES</button>
-    </div>
 
-    <button id="no">NO</button>
+  <div class="card">
+    <h1>Would you be my Valentine? ❤️</h1>
+
+    <div class="btnRow" id="btnRow">
+      <button id="yes">YES</button>
+      <button id="no">NO</button>
+    </div>
   </div>
 
-<script>
-  const box = document.getElementById("box");
-  const noBtn = document.getElementById("no");
-  const yesBtn = document.getElementById("yes");
+  <script>
+    const noBtn = document.getElementById("no");
+    const yesBtn = document.getElementById("yes");
 
-  let dodgeCount = 0;
+    let dodgeCount = 0;
+    let freeFloating = false;
 
-  function clamp(val, min, max) {
-    return Math.max(min, Math.min(max, val));
-  }
+    function dodge() {
+      dodgeCount++;
 
-  function moveNoTo(x, y) {
-    const boxRect = box.getBoundingClientRect();
-    const btnRect = noBtn.getBoundingClientRect();
+      // First dodge: convert NO from aligned to free-floating
+      if (!freeFloating) {
+        freeFloating = true;
 
-    const padding = 12;
+        const rect = noBtn.getBoundingClientRect();
 
-    const minX = padding;
-    const minY = padding;
-    const maxX = boxRect.width - btnRect.width - padding;
-    const maxY = boxRect.height - btnRect.height - padding;
+        // Fix it to the viewport at the exact same spot
+        noBtn.style.position = "fixed";
+        noBtn.style.left = rect.left + "px";
+        noBtn.style.top = rect.top + "px";
+        noBtn.style.zIndex = 9999;
+      }
 
-    const safeX = clamp(x, minX, maxX);
-    const safeY = clamp(y, minY, maxY);
+      const padding = 14;
 
-    noBtn.style.left = safeX + "px";
-    noBtn.style.top = safeY + "px";
-  }
+      const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+      const maxY = window.innerHeight - noBtn.offsetHeight - padding;
 
-  function placeNoNearCenter() {
-    const boxRect = box.getBoundingClientRect();
+      const x = padding + Math.random() * maxX;
+      const y = padding + Math.random() * maxY;
 
-    // Start it near the YES button area so the user sees it
-    const startX = boxRect.width / 2 + 90;
-    const startY = boxRect.height * 0.42 + 60;
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
 
-    moveNoTo(startX, startY);
-  }
+      // YES grows subtly each dodge
+      const scale = 1 + dodgeCount * 0.04;
+      yesBtn.style.transform = `scale(${scale})`;
+    }
 
-  function dodge() {
-    dodgeCount++;
+    // Desktop triggers
+    noBtn.addEventListener("mouseenter", dodge);
+    noBtn.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      dodge();
+    });
 
-    const boxRect = box.getBoundingClientRect();
-    const btnRect = noBtn.getBoundingClientRect();
+    // Mobile triggers
+    noBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      dodge();
+    }, { passive: false });
 
-    const padding = 12;
+    // YES click -> go to celebration page
+    yesBtn.addEventListener("click", () => {
+      window.location.href = "yes.html";
+    });
 
-    const minX = padding;
-    const minY = padding;
-    const maxX = boxRect.width - btnRect.width - padding;
-    const maxY = boxRect.height - btnRect.height - padding;
-
-    const x = minX + Math.random() * (maxX - minX);
-    const y = minY + Math.random() * (maxY - minY);
-
-    noBtn.style.left = x + "px";
-    noBtn.style.top = y + "px";
-
-    // YES grows subtly, like confidence
-    const scale = 1 + dodgeCount * 0.04;
-    yesBtn.style.transform = `scale(${scale})`;
-  }
-
-  // Desktop
-  noBtn.addEventListener("mouseenter", dodge);
-  noBtn.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    dodge();
-  });
-
-  // Mobile
-  noBtn.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    dodge();
-  }, { passive: false });
-
-  // YES click
-  yesBtn.addEventListener("click", () => {
-    window.location.href = "yes.html";
-  });
-
-  // Init
-  window.addEventListener("load", () => {
-    placeNoNearCenter();
-  });
-
-  // Keep it inside on resize/rotation
-  window.addEventListener("resize", () => {
-    placeNoNearCenter();
-  });
-</script>
+    // Optional: subtle background hearts (maximum charm)
+    const bgHearts = ["❤️", "💖", "💕", "💘", "💗"];
+    for (let i = 0; i < 18; i++) {
+      const h = document.createElement("div");
+      h.className = "bgHeart";
+      h.innerText = bgHearts[Math.floor(Math.random() * bgHearts.length)];
+      h.style.left = Math.random() * 100 + "vw";
+      h.style.animationDuration = (Math.random() * 6 + 8) + "s";
+      h.style.fontSize = (Math.random() * 14 + 14) + "px";
+      h.style.animationDelay = (Math.random() * 8) + "s";
+      document.body.appendChild(h);
+    }
+  </script>
 
 </body>
 </html>
